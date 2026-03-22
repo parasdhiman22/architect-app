@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ar. Gigi – Client Portal</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f0; min-height: 100vh; display: flex; justify-content: center; padding: 0; }
+  .app { width: 100%; max-width: 430px; background: #fff; min-height: 100vh; display: flex; flex-direction: column; position: relative; }
+  .screen { display: none; flex-direction: column; flex: 1; }
+  .screen.active { display: flex; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid #ebebeb; background: #fff; position: sticky; top: 0; z-index: 10; }
+  .topbar-title { font-size: 15px; font-weight: 600; color: #1a1a1a; }
+  .back-btn { font-size: 14px; color: #185FA5; cursor: pointer; background: none; border: none; padding: 0; font-family: inherit; }
+  .logo { font-size: 17px; font-weight: 700; color: #1a1a1a; letter-spacing: -0.5px; }
+  .new-btn { font-size: 13px; font-weight: 600; color: #fff; background: #185FA5; border: none; padding: 7px 14px; border-radius: 8px; cursor: pointer; font-family: inherit; }
+  .nav-tabs { display: flex; border-bottom: 1px solid #ebebeb; background: #fff; }
+  .nav-tab { flex: 1; padding: 10px; text-align: center; font-size: 13px; color: #888; cursor: pointer; border-bottom: 2px solid transparent; font-family: inherit; background: none; border-left: none; border-right: none; border-top: none; }
+  .nav-tab.active { color: #185FA5; border-bottom: 2px solid #185FA5; font-weight: 600; }
+  .section-label { font-size: 11px; color: #aaa; padding: 14px 16px 6px; text-transform: uppercase; letter-spacing: 0.7px; }
+  .project-card { background: #fff; border-bottom: 1px solid #f0f0f0; padding: 14px 16px; }
+  .project-name { font-size: 15px; font-weight: 600; color: #1a1a1a; margin-bottom: 2px; }
+  .project-client { font-size: 13px; color: #888; margin-bottom: 10px; }
+  .project-row { display: flex; align-items: center; justify-content: space-between; }
+  .status-badge { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 5px; }
+  .status-yellow { background: #FFF3CD; color: #856404; }
+  .status-green { background: #D1FAE5; color: #065F46; }
+  .status-red { background: #FEE2E2; color: #991B1B; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+  .dot-yellow { background: #F59E0B; }
+  .dot-green { background: #10B981; }
+  .dot-red { background: #EF4444; }
+  .amount { font-size: 15px; font-weight: 700; color: #1a1a1a; }
+  .card-actions { display: flex; justify-content: flex-end; margin-top: 10px; }
+  .view-btn { font-size: 13px; color: #185FA5; background: none; border: 1px solid #ddd; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-family: inherit; }
+  .form-area { padding: 16px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
+  .field-group { display: flex; flex-direction: column; gap: 6px; }
+  .field-label { font-size: 12px; color: #888; font-weight: 500; }
+  .field-input { width: 100%; border: 1px solid #e0e0e0; border-radius: 10px; padding: 11px 14px; font-size: 15px; color: #1a1a1a; background: #fff; font-family: inherit; outline: none; transition: border-color 0.15s; }
+  .field-input:focus { border-color: #185FA5; }
+  .fee-box { background: #F0F7FF; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 8px; border: 1px solid #cce3f8; }
+  .fee-hint { font-size: 12px; color: #185FA5; font-weight: 600; }
+  .fee-amount { font-size: 26px; font-weight: 700; color: #1a1a1a; }
+  .fee-sub { font-size: 12px; color: #888; }
+  .primary-btn { width: 100%; padding: 14px; background: #185FA5; color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+  .primary-btn:hover { background: #1251a3; }
+  .primary-btn:active { transform: scale(0.98); }
+  .secondary-btn { width: 100%; padding: 12px; background: none; color: #888; border: 1px solid #e0e0e0; border-radius: 12px; font-size: 14px; cursor: pointer; font-family: inherit; }
+  .agreement-block { padding: 16px; border-bottom: 1px solid #f0f0f0; }
+  .agreement-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid #f8f8f8; font-size: 14px; }
+  .agreement-row:last-child { border-bottom: none; }
+  .agreement-key { color: #888; }
+  .agreement-val { color: #1a1a1a; font-weight: 600; text-align: right; max-width: 60%; }
+  .condition-note { margin-top: 12px; padding: 10px 14px; background: #FFF8E7; border-radius: 8px; font-size: 13px; color: #92600A; line-height: 1.5; }
+  .wa-label { padding: 14px 16px 6px; font-size: 11px; color: #aaa; text-transform: uppercase; letter-spacing: 0.7px; }
+  .whatsapp-preview { background: #E8F5E9; border-radius: 12px; margin: 0 16px; padding: 14px 16px; font-size: 14px; color: #1B5E20; line-height: 1.7; }
+  .wa-link { color: #185FA5; text-decoration: underline; cursor: pointer; }
+  .btn-group { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .client-hero { padding: 28px 16px 20px; text-align: center; border-bottom: 1px solid #f0f0f0; }
+  .arch-avatar { width: 56px; height: 56px; background: #185FA5; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; color: #fff; margin: 0 auto 12px; }
+  .arch-name { font-size: 18px; font-weight: 700; color: #1a1a1a; }
+  .arch-sub { font-size: 13px; color: #888; margin-top: 2px; }
+  .client-info { padding: 20px 16px; }
+  .info-label { font-size: 12px; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .info-value { font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 18px; }
+  .fee-big { font-size: 28px; font-weight: 800; color: #1a1a1a; margin-bottom: 20px; }
+  .how-box { margin: 0 16px 20px; background: #F8FAFF; border-radius: 12px; padding: 16px; border: 1px solid #e0ecfb; }
+  .how-title { font-size: 11px; color: #aaa; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 12px; }
+  .how-step { display: flex; align-items: flex-start; gap: 12px; padding: 5px 0; font-size: 14px; color: #1a1a1a; line-height: 1.4; }
+  .step-num { width: 24px; height: 24px; background: #185FA5; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+  .pay-wrap { padding: 0 16px 24px; }
+  .pay-btn { width: 100%; padding: 18px; background: #185FA5; color: #fff; border: none; border-radius: 14px; font-size: 17px; font-weight: 700; cursor: pointer; font-family: inherit; box-shadow: 0 4px 16px rgba(24,95,165,0.3); }
+  .pay-btn:active { transform: scale(0.98); }
+  .success-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; padding: 48px 24px; text-align: center; gap: 14px; }
+  .success-icon { width: 72px; height: 72px; background: #D1FAE5; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; }
+  .success-title { font-size: 22px; font-weight: 700; color: #1a1a1a; }
+  .success-amount { font-size: 28px; font-weight: 800; color: #065F46; }
+  .success-sub { font-size: 14px; color: #888; line-height: 1.6; max-width: 280px; }
+  .drawing-wrap { padding: 16px; }
+  .drawing-card { border: 1px solid #e8e8e8; border-radius: 14px; overflow: hidden; }
+  .drawing-preview { height: 180px; background: #f8f8f8; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+  .blueprint { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+  .blur-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.7); backdrop-filter: blur(8px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
+  .lock-icon { font-size: 28px; }
+  .lock-text { font-size: 13px; color: #888; font-weight: 600; }
+  .drawing-footer { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #f0f0f0; background: #fff; }
+  .drawing-filename { font-size: 13px; font-weight: 600; color: #1a1a1a; }
+  .drawing-status-locked { font-size: 12px; color: #888; }
+  .drawing-status-unlocked { font-size: 12px; color: #065F46; font-weight: 600; }
+  .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 13px 16px; border-bottom: 1px solid #f5f5f5; font-size: 14px; }
+  .detail-key { color: #888; }
+  .detail-val { color: #1a1a1a; font-weight: 600; }
+  .actions-section { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .action-btn { width: 100%; padding: 13px 16px; background: #fff; border: 1px solid #e8e8e8; border-radius: 10px; font-size: 14px; color: #1a1a1a; cursor: pointer; text-align: left; font-family: inherit; display: flex; align-items: center; gap: 10px; }
+  .action-btn:hover { background: #f8f8f8; }
+  .action-icon { font-size: 16px; }
+  .empty-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: #bbb; font-size: 14px; padding: 40px; text-align: center; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- DASHBOARD -->
+  <div id="screen-dashboard" class="screen active">
+    <div class="topbar">
+      <span class="logo">Ar. Gigi</span>
+      <button class="new-btn" onclick="show('screen-create')">+ New Project</button>
+    </div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="filterProjects('all', this)">All</button>
+      <button class="nav-tab" onclick="filterProjects('pending', this)">Pending</button>
+      <button class="nav-tab" onclick="filterProjects('paid', this)">Paid</button>
+      <button class="nav-tab" onclick="filterProjects('expired', this)">Expired</button>
+    </div>
+    <div class="section-label">Projects</div>
+    <div id="projects-list"></div>
+  </div>
+
+  <!-- CREATE PROJECT -->
+  <div id="screen-create" class="screen">
+    <div class="topbar">
+      <button class="back-btn" onclick="show('screen-dashboard')">← Back</button>
+      <span class="topbar-title">New Project</span>
+      <span style="width:60px;"></span>
+    </div>
+    <div class="form-area">
+      <div class="field-group">
+        <div class="field-label">Project Name</div>
+        <input class="field-input" id="inp-project" type="text" placeholder="e.g. Sharma House" />
+      </div>
+      <div class="field-group">
+        <div class="field-label">Client Name</div>
+        <input class="field-input" id="inp-client" type="text" placeholder="e.g. Rajesh Sharma" />
+      </div>
+      <div class="field-group">
+        <div class="field-label">Client WhatsApp Number</div>
+        <input class="field-input" id="inp-phone" type="tel" placeholder="+91 98765 43210" />
+      </div>
+      <div class="field-group">
+        <div class="field-label">Built-up Area (sq ft)</div>
+        <input class="field-input" id="inp-sqft" type="number" placeholder="1500" oninput="calcFee()" />
+      </div>
+      <div class="field-group">
+        <div class="field-label">Service Type</div>
+        <select class="field-input" id="inp-service">
+          <option value="Approval Drawing">Approval Drawing</option>
+          <option value="Construction Drawing">Construction Drawing</option>
+          <option value="Interior Design">Interior Design</option>
+          <option value="Full Service">Full Service</option>
+        </select>
+      </div>
+      <div class="fee-box">
+        <div class="fee-hint">💡 Recommended Fee</div>
+        <div class="fee-amount" id="fee-display">₹0</div>
+        <div class="fee-sub">₹30 per sq ft</div>
+        <div class="field-group" style="margin-top:8px;">
+          <div class="field-label">Edit Amount (optional)</div>
+          <input class="field-input" id="inp-fee" type="number" placeholder="45000" style="background:#fff;" />
+        </div>
+      </div>
+      <button class="primary-btn" onclick="createProject()">Generate Agreement & Payment Link</button>
+    </div>
+  </div>
+
+  <!-- AGREEMENT PREVIEW -->
+  <div id="screen-agreement" class="screen">
+    <div class="topbar">
+      <button class="back-btn" onclick="show('screen-create')">← Back</button>
+      <span class="topbar-title">Agreement Preview</span>
+      <span style="width:60px;"></span>
+    </div>
+    <div class="agreement-block">
+      <div class="agreement-row"><span class="agreement-key">Architect</span><span class="agreement-val">Ar. Gigi</span></div>
+      <div class="agreement-row"><span class="agreement-key">Client</span><span class="agreement-val" id="agr-client">—</span></div>
+      <div class="agreement-row"><span class="agreement-key">Project</span><span class="agreement-val" id="agr-project">—</span></div>
+      <div class="agreement-row"><span class="agreement-key">Scope</span><span class="agreement-val" id="agr-scope">—</span></div>
+      <div class="agreement-row"><span class="agreement-key">Fee</span><span class="agreement-val" id="agr-fee">—</span></div>
+      <div class="condition-note">⚠️ Drawings will be released only after full payment is confirmed.</div>
+    </div>
+    <div class="wa-label">WhatsApp Message Preview</div>
+    <div class="whatsapp-preview" id="wa-preview"></div>
+    <div class="btn-group">
+      <button class="primary-btn" onclick="sendAgreement()">📲 Send via WhatsApp</button>
+      <button class="secondary-btn" onclick="show('screen-dashboard')">Save & Send Later</button>
+    </div>
+  </div>
+
+  <!-- CLIENT VIEW -->
+  <div id="screen-client" class="screen">
+    <div class="client-hero">
+      <div class="arch-avatar">GG</div>
+      <div class="arch-name">Ar. Gigi</div>
+      <div class="arch-sub">Registered Architect</div>
+    </div>
+    <div class="client-info">
+      <div class="info-label">Project</div>
+      <div class="info-value" id="cl-project">—</div>
+      <div class="info-label">Scope of Work</div>
+      <div class="info-value" id="cl-scope">—</div>
+      <div class="info-label">Total Fee</div>
+      <div class="fee-big" id="cl-fee">—</div>
+    </div>
+    <div class="how-box">
+      <div class="how-title">How it works</div>
+      <div class="how-step"><span class="step-num">1</span><span>Pay the fee securely</span></div>
+      <div class="how-step"><span class="step-num">2</span><span>Your drawings are immediately released</span></div>
+      <div class="how-step"><span class="step-num">3</span><span>Architect proceeds with authority submission</span></div>
+    </div>
+    <div class="pay-wrap">
+      <button class="pay-btn" id="pay-btn-text" onclick="show('screen-payment-success')">Accept & Pay</button>
+    </div>
+  </div>
+
+  <!-- PAYMENT SUCCESS -->
+  <div id="screen-payment-success" class="screen">
+    <div class="success-wrap">
+      <div class="success-icon">✅</div>
+      <div class="success-title">Payment Successful!</div>
+      <div class="success-amount" id="success-amount">₹45,000</div>
+      <div class="success-sub">Your architect will now proceed with the authority submission. You'll be notified once drawings are ready.</div>
+      <button class="primary-btn" style="margin-top:8px;" onclick="show('screen-drawing-paid')">View Project</button>
+    </div>
+  </div>
+
+  <!-- DRAWING LOCKED -->
+  <div id="screen-drawing-locked" class="screen">
+    <div class="topbar">
+      <button class="back-btn" onclick="show('screen-detail')">← Back</button>
+      <span class="topbar-title" id="dl-title">Project Drawings</span>
+      <span style="width:60px;"></span>
+    </div>
+    <div class="drawing-wrap">
+      <div class="drawing-card">
+        <div class="drawing-preview">
+          <div class="blueprint">
+            <svg width="280" height="150" viewBox="0 0 280 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="10" y="10" width="260" height="130" stroke="#ccc" stroke-width="1"/>
+              <line x1="90" y1="10" x2="90" y2="140" stroke="#ccc" stroke-width="0.5"/>
+              <line x1="180" y1="10" x2="180" y2="140" stroke="#ccc" stroke-width="0.5"/>
+              <line x1="10" y1="75" x2="270" y2="75" stroke="#ccc" stroke-width="0.5"/>
+              <rect x="110" y="85" width="50" height="35" stroke="#ccc" stroke-width="0.5"/>
+              <rect x="30" y="20" width="40" height="40" stroke="#ccc" stroke-width="0.5"/>
+              <rect x="195" y="20" width="55" height="25" stroke="#ccc" stroke-width="0.5"/>
+            </svg>
+          </div>
+          <div class="blur-overlay">
+            <div class="lock-icon">🔒</div>
+            <div class="lock-text">Locked – Awaiting Payment</div>
+          </div>
+        </div>
+        <div class="drawing-footer">
+          <span class="drawing-filename">floor-plan-v1.pdf</span>
+          <span class="drawing-status-locked">Locked</span>
+        </div>
+      </div>
+    </div>
+    <div class="actions-section">
+      <button class="action-btn" onclick="show('screen-client')"><span class="action-icon">📲</span> Resend Payment Link</button>
+    </div>
+  </div>
+
+  <!-- DRAWING UNLOCKED -->
+  <div id="screen-drawing-paid" class="screen">
+    <div class="topbar">
+      <button class="back-btn" onclick="show('screen-dashboard')">← Back</button>
+      <span class="topbar-title" id="dp-title">Project Drawings</span>
+      <span style="width:60px;"></span>
+    </div>
+    <div style="padding:10px 16px;">
+      <span class="status-badge status-green"><span class="dot dot-green"></span>Payment Received</span>
+    </div>
+    <div class="drawing-wrap">
+      <div class="drawing-card">
+        <div class="drawing-preview">
+          <svg width="280" height="150" viewBox="0 0 280 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="10" y="10" width="260" height="130" stroke="#999" stroke-width="1"/>
+            <line x1="90" y1="10" x2="90" y2="140" stroke="#bbb" stroke-width="0.5"/>
+            <line x1="180" y1="10" x2="180" y2="140" stroke="#bbb" stroke-width="0.5"/>
+            <line x1="10" y1="75" x2="270" y2="75" stroke="#bbb" stroke-width="0.5"/>
+            <rect x="110" y="85" width="50" height="35" stroke="#999" stroke-width="0.5"/>
+            <rect x="30" y="20" width="40" height="40" stroke="#999" stroke-width="0.5"/>
+            <rect x="195" y="20" width="55" height="25" stroke="#999" stroke-width="0.5"/>
+            <text x="140" y="60" text-anchor="middle" font-size="10" fill="#aaa" font-family="sans-serif">Floor Plan – Final</text>
+          </svg>
+        </div>
+        <div class="drawing-footer">
+          <span class="drawing-filename">floor-plan-final.pdf</span>
+          <span class="drawing-status-unlocked">✅ Unlocked</span>
+        </div>
+      </div>
+    </div>
+    <div class="actions-section">
+      <button class="primary-btn">⬇️ Download Submission Set</button>
+    </div>
+  </div>
+
+  <!-- PROJECT DETAIL -->
+  <div id="screen-detail" class="screen">
+    <div class="topbar">
+      <button class="back-btn" onclick="show('screen-dashboard')">← Back</button>
+      <span class="topbar-title">Project Details</span>
+      <span style="width:60px;"></span>
+    </div>
+    <div class="detail-row"><span class="detail-key">Project</span><span class="detail-val" id="det-project">—</span></div>
+    <div class="detail-row"><span class="detail-key">Client</span><span class="detail-val" id="det-client">—</span></div>
+    <div class="detail-row"><span class="detail-key">Phone</span><span class="detail-val" id="det-phone">—</span></div>
+    <div class="detail-row"><span class="detail-key">Scope</span><span class="detail-val" id="det-scope">—</span></div>
+    <div class="detail-row"><span class="detail-key">Status</span><span id="det-status">—</span></div>
+    <div class="detail-row"><span class="detail-key">Amount</span><span class="detail-val" id="det-amount">—</span></div>
+    <div class="actions-section">
+      <button class="action-btn" onclick="show('screen-client')"><span class="action-icon">📲</span> Resend Payment Link</button>
+      <button class="action-btn" onclick="show('screen-drawing-locked')"><span class="action-icon">📁</span> View / Upload Drawings</button>
+      <button class="action-btn" onclick="markPaid()"><span class="action-icon">✅</span> Mark as Paid (Manual)</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  var projects = [
+    { id: 1, name: 'Sharma House', client: 'Rajesh Sharma', phone: '+91 98765 43210', service: 'Approval Drawing', fee: 45000, status: 'pending' },
+    { id: 2, name: 'Verma Villa', client: 'Amit Verma', phone: '+91 91234 56789', service: 'Construction Drawing', fee: 60000, status: 'paid' },
+    { id: 3, name: 'Gupta Residence', client: 'Sunil Gupta', phone: '+91 99887 76655', service: 'Full Service', fee: 38000, status: 'expired' }
+  ];
+  var currentProject = null;
+
+  function formatINR(n) {
+    return '₹' + parseInt(n).toLocaleString('en-IN');
+  }
+
+  function statusBadge(status) {
+    if (status === 'pending') return '<span class="status-badge status-yellow"><span class="dot dot-yellow"></span>Awaiting Payment</span>';
+    if (status === 'paid') return '<span class="status-badge status-green"><span class="dot dot-green"></span>Paid</span>';
+    if (status === 'expired') return '<span class="status-badge status-red"><span class="dot dot-red"></span>Expired</span>';
+    return '';
+  }
+
+  function renderProjects(filter) {
+    var list = document.getElementById('projects-list');
+    var filtered = filter === 'all' ? projects : projects.filter(function(p){ return p.status === filter; });
+    if (filtered.length === 0) {
+      list.innerHTML = '<div class="empty-state">No projects found in this category.</div>';
+      return;
+    }
+    list.innerHTML = filtered.map(function(p) {
+      return '<div class="project-card">' +
+        '<div class="project-name">' + p.name + '</div>' +
+        '<div class="project-client">Client: ' + p.client + '</div>' +
+        '<div class="project-row">' + statusBadge(p.status) + '<span class="amount">' + formatINR(p.fee) + '</span></div>' +
+        '<div class="card-actions"><button class="view-btn" onclick="openDetail(' + p.id + ')">View →</button></div>' +
+        '</div>';
+    }).join('');
+  }
+
+  function filterProjects(filter, btn) {
+    document.querySelectorAll('.nav-tab').forEach(function(t){ t.classList.remove('active'); });
+    btn.classList.add('active');
+    renderProjects(filter);
+  }
+
+  function openDetail(id) {
+    var p = projects.find(function(x){ return x.id === id; });
+    currentProject = p;
+    document.getElementById('det-project').textContent = p.name;
+    document.getElementById('det-client').textContent = p.client;
+    document.getElementById('det-phone').textContent = p.phone;
+    document.getElementById('det-scope').textContent = p.service;
+    document.getElementById('det-status').innerHTML = statusBadge(p.status);
+    document.getElementById('det-amount').textContent = formatINR(p.fee);
+    document.getElementById('dl-title').textContent = p.name;
+    document.getElementById('dp-title').textContent = p.name;
+    fillClientView(p);
+    show('screen-detail');
+  }
+
+  function fillClientView(p) {
+    document.getElementById('cl-project').textContent = p.name;
+    document.getElementById('cl-scope').textContent = p.service;
+    document.getElementById('cl-fee').textContent = formatINR(p.fee);
+    document.getElementById('pay-btn-text').textContent = 'Accept & Pay ' + formatINR(p.fee);
+    document.getElementById('success-amount').textContent = formatINR(p.fee);
+  }
+
+  function calcFee() {
+    var sqft = parseInt(document.getElementById('inp-sqft').value) || 0;
+    var fee = sqft * 30;
+    document.getElementById('fee-display').textContent = formatINR(fee);
+    document.getElementById('inp-fee').value = fee || '';
+  }
+
+  function createProject() {
+    var name = document.getElementById('inp-project').value.trim();
+    var client = document.getElementById('inp-client').value.trim();
+    var phone = document.getElementById('inp-phone').value.trim();
+    var sqft = document.getElementById('inp-sqft').value;
+    var service = document.getElementById('inp-service').value;
+    var feeOverride = document.getElementById('inp-fee').value;
+    var fee = feeOverride ? parseInt(feeOverride) : (parseInt(sqft) * 30);
+
+    if (!name || !client || !phone || !sqft) {
+      alert('Please fill in all fields.');
+      return;
+    }
+
+    var newProject = { id: Date.now(), name: name, client: client, phone: phone, service: service, fee: fee, status: 'pending' };
+    projects.unshift(newProject);
+    currentProject = newProject;
+
+    document.getElementById('agr-client').textContent = client;
+    document.getElementById('agr-project').textContent = name;
+    document.getElementById('agr-scope').textContent = service;
+    document.getElementById('agr-fee').textContent = formatINR(fee);
+    document.getElementById('wa-preview').innerHTML =
+      'Hi ' + client.split(' ')[0] + ',<br><br>' +
+      'Please review your project details and confirm payment.<br><br>' +
+      'Project: <strong>' + name + '</strong><br>' +
+      'Scope: ' + service + '<br>' +
+      'Fee: <strong>' + formatINR(fee) + '</strong><br><br>' +
+      'Drawings will be released immediately after payment.<br><br>' +
+      '<span class="wa-link">[ Click here to pay ]</span>';
+
+    fillClientView(newProject);
+    renderProjects('all');
+    show('screen-agreement');
+  }
+
+  function sendAgreement() {
+    show('screen-client');
+  }
+
+  function markPaid() {
+    if (currentProject) {
+      currentProject.status = 'paid';
+      renderProjects('all');
+      show('screen-drawing-paid');
+    }
+  }
+
+  function show(id) {
+    document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  renderProjects('all');
+</script>
+</body>
+</html>
